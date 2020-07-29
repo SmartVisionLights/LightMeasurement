@@ -9,6 +9,8 @@ SparkFun_Ambient_Light light(AL_ADDR);
 // LOW = 24V, HIGH = 0V
 #define analogLine 12
 
+
+
 // LOW = 24V = OFF, HIGH = 0V = ON
 #define npnLine 8
 
@@ -64,7 +66,7 @@ void setup() {
   
   // Again the gain and integration times determine the resolution of the lux
   // value, and give different ranges of possible light readings. Check out
-  // hoookup guide for more info. 
+  // hookup guide for more info.
   light.setGain(gain);
   light.setIntegTime(time);
   float gainVal = light.readGain();
@@ -74,9 +76,13 @@ void setup() {
   pinMode(analogLine, OUTPUT);
   pinMode(npnLine, OUTPUT);
   pinMode(pnpLine, OUTPUT);
+
+  pinMode(13, OUTPUT);
+  digitalWrite(13, LOW);
+
   
-  digitalWrite(analogLine, LOW);
-  digitalWrite(npnLine, LOW);
+  digitalWrite(analogLine, HIGH);
+  digitalWrite(npnLine, HIGH);
   digitalWrite(pnpLine, HIGH);
 
 }
@@ -99,14 +105,16 @@ void loop() {
 }
 
 
+int start = 0;
+
 void measureLight(boolean overdrive) {
   if (overdrive) {
-    digitalWrite(analogLine, HIGH);
+    digitalWrite(analogLine, LOW);
     averageWritten = false;
     numOfReadings = 1;
     cellGain = readCell("Q2");
     cellTime = readCell("R2");
-    
+
     gain = cellGain.toInt();
     gain /= 1000.0;
     
@@ -114,13 +122,17 @@ void measureLight(boolean overdrive) {
   
     light.setGain(gain);
     light.setIntegTime(time);
-    digitalWrite(npnLine, HIGH);
-    luxVal = light.readLight();
     digitalWrite(npnLine, LOW);
+    start = millis();
+    luxVal = light.readLight();
+    writeCell("S2", String(millis()-start));
+    delay(1000);
+    digitalWrite(npnLine, HIGH);
     writeCell("J5", String(luxVal-calibrationFactor));
     delay(delayVal);
-    digitalWrite(analogLine, LOW);
+    digitalWrite(analogLine, HIGH);
   }else {
+    digitalWrite(analogLine, HIGH);
     averageWritten = false;
     numOfReadings = 1;
     cellGain = readCell("Q2");
@@ -133,13 +145,15 @@ void measureLight(boolean overdrive) {
     light.setGain(gain);
     light.setIntegTime(time);
     
-    digitalWrite(npnLine, HIGH);
+    digitalWrite(npnLine, LOW);
     luxVal = light.readLight();
     delay(1000);
-    digitalWrite(npnLine, LOW);
+    digitalWrite(npnLine, HIGH);
     
     writeCell("I5", String(luxVal-calibrationFactor));
     delay(delayVal);
+    digitalWrite(analogLine, HIGH);
+
   }
   writeCell(barcodeCell, "SV");
   delay(100);
