@@ -1,0 +1,6 @@
+Excel Notes
+
+
+Dynamic "IF" statement where the value changes if statement is true, but stays the same if statement is false:
+
+=IF(AND(#REF!,ROW() - $A$1 = 6),AVERAGE(IntensityValues),OFFSET(INDIRECT(ADDRESS(ROW(), COLUMN())),0,0))
